@@ -38,7 +38,7 @@ resource "aws_instance" "example" {
     host = self.public_ip
     type = "ssh"
     user = "ec2-user"
-    private_key = file("./id_rsa")
+    private_key = file("./id_rsa2")
     agent = false
     timeout = "1m"
   }
