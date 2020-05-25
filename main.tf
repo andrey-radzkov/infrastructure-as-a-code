@@ -28,6 +28,12 @@ resource "aws_security_group" "http" {
     cidr_blocks = [
       "0.0.0.0/0"]
   }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_instance" "example" {
@@ -37,8 +43,8 @@ resource "aws_instance" "example" {
   connection {
     host = self.public_ip
     type = "ssh"
-    user = "ec2-user"
-    private_key = file("./id_rsa2")
+    user = "ubuntu"
+    private_key = file("./test22.pem")
     agent = false
     timeout = "1m"
   }
@@ -52,8 +58,11 @@ resource "aws_instance" "example" {
   }
   provisioner "remote-exec" {
     inline = [
-      "sudo yum install -y docker",
-      "sudo service docker start",
+      "Y | sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common",
+      "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -",
+      "sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"",
+      "sudo apt-get update",
+      "Y | sudo apt-get install docker-ce docker-ce-cli containerd.io",
       "sudo docker pull nginx",
       "sudo docker run -d -p 80:80 -v /tmp:/usr/share/nginx/html --name nginx_0 nginx",
       "sudo sed -iE \"s/{{ hostname }}/`hostname`/g\" /tmp/index.html",

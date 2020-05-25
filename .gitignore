@@ -1,4 +1,6 @@
 /terraform.tfstate
 /terraform.tfstate.backup
-/id_rsa2
+/test2.pem
+/test22.pem
 /test.ppk
+/.terraform.tfstate.lock.info
