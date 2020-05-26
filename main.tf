@@ -47,7 +47,7 @@ resource "aws_instance" "example" {
     host = self.public_ip
     type = "ssh"
     user = "ubuntu"
-    private_key = file("./test22.pem")
+    private_key = file("./test2.pem")
     agent = false
     timeout = "1m"
   }
