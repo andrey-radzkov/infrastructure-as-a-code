@@ -4,3 +4,7 @@
 /test22.pem
 /test.ppk
 /.terraform.tfstate.lock.info
+/.terraform
+/.gradle
+/.idea
+/build
