@@ -15,3 +15,7 @@ terraform apply -auto-approve
 ```
 2. Copy public_dns output value, paste to browser 
 3. Enjoy)
+4. To cleanup your environment execute in git bash
+```
+terraform destroy -auto-approve
+```
