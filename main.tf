@@ -4,50 +4,37 @@ provider "aws" {
   shared_credentials_file = "C:/Users/a/.aws/credentials"
 }
 
-resource "aws_security_group" "ssh" {
+resource "aws_security_group" "default" {
+  count = length(var.security_groups)
 
-  name = "terraform_security_group_ssh"
-  description = "AWS security group for terraform example"
+  name = var.security_groups[count.index].name
+  description = var.security_groups[count.index].description
   ingress {
-    from_port = "22"
-    to_port = "22"
-    protocol = "tcp"
-    cidr_blocks = [
-      "0.0.0.0/0"]
-  }
-}
-
-resource "aws_security_group" "http" {
-
-  name = "terraform_security_group_http"
-  description = "AWS security group for terraform example"
-  ingress {
-    from_port = "8080"
-    to_port = "8080"
-    protocol = "tcp"
-    cidr_blocks = [
-      "0.0.0.0/0"]
+    from_port = var.security_groups[count.index].ingress.from_port
+    protocol = var.security_groups[count.index].ingress.protocol
+    to_port = var.security_groups[count.index].ingress.to_port
+    cidr_blocks = var.security_groups[count.index].ingress.cidr_blocks
   }
   egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = [
-      "0.0.0.0/0"]
+    from_port = var.security_groups[count.index].egress.from_port
+    protocol = var.security_groups[count.index].egress.protocol
+    to_port = var.security_groups[count.index].egress.to_port
+    cidr_blocks = var.security_groups[count.index].egress.cidr_blocks
   }
 }
 
 resource "aws_instance" "example" {
-  ami = "ami-2757f631"
-  instance_type = "t2.micro"
-  key_name = "test2"
+//  count = 3
+  ami = var.ami_id
+  instance_type = var.instance_type
+  key_name = var.key_name
   user_data = file("./start.sh")
 
   connection {
     host = self.public_ip
     type = "ssh"
-    user = "ubuntu"
-    private_key = file("./test2.pem")
+    user = var.user
+    private_key = file(var.private_key)
     agent = false
     timeout = "1m"
   }
