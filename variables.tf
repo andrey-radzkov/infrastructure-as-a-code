@@ -1,6 +1,12 @@
 variable "ami_id" {
   default = "ami-2757f631"
 }
+variable "aws_availability_zones" {
+  default = [
+    "us-east-1a",
+    "us-east-1b"
+  ]
+}
 variable "security_groups" {
   default = [
     {
@@ -26,7 +32,7 @@ variable "security_groups" {
       name = "terraform_security_group_http"
       description = "AWS http security group for terraform example"
       ingress = {
-        from_port = "8080"
+        from_port = "80"
         to_port = "8080"
         protocol = "tcp"
         cidr_blocks = [

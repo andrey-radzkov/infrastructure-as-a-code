@@ -24,11 +24,12 @@ resource "aws_security_group" "default" {
 }
 
 resource "aws_instance" "example" {
-//  count = 3
+  count = 3
   ami = var.ami_id
   instance_type = var.instance_type
   key_name = var.key_name
   user_data = file("./start.sh")
+  availability_zone = var.aws_availability_zones[count.index % length(var.aws_availability_zones)]
 
   connection {
     host = self.public_ip
@@ -38,8 +39,14 @@ resource "aws_instance" "example" {
     agent = false
     timeout = "1m"
   }
-  security_groups = [
-    "terraform_security_group_http",
-    "terraform_security_group_ssh"]
+  security_groups = aws_security_group.default.*.name
   associate_public_ip_address = true
+}
+
+resource "aws_lb" "web" {
+  name = "albweb"
+  internal = false
+  load_balancer_type = "application"
+  subnets = aws_instance.example.*.subnet_id
+  security_groups = aws_security_group.default.*.id
 }
