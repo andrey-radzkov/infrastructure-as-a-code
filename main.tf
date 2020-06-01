@@ -22,7 +22,9 @@ resource "aws_security_group" "default" {
     cidr_blocks = var.security_groups[count.index].egress.cidr_blocks
   }
 }
-
+/**
+ EC2 configuration
+*/
 resource "aws_instance" "example" {
   count = 3
   ami = var.ami_id
@@ -50,3 +52,34 @@ resource "aws_lb" "web" {
   subnets = aws_instance.example.*.subnet_id
   security_groups = aws_security_group.default.*.id
 }
+
+/**
+ ALB configuration start
+*/
+resource "aws_lb_target_group" "test" {
+  name = "tf-example-lb-ec2"
+  port = 80
+  protocol = "HTTP"
+  vpc_id = aws_lb.web.vpc_id
+}
+
+resource "aws_lb_target_group_attachment" "test" {
+  count = length(aws_instance.example.*.id)
+  target_group_arn = aws_lb_target_group.test.arn
+  target_id = aws_instance.example[count.index].id
+  port = 8080
+}
+
+resource "aws_lb_listener" "listener" {
+  load_balancer_arn = aws_lb.web.arn
+  port = "80"
+  protocol = "HTTP"
+
+  default_action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.test.arn
+  }
+}
+/**
+ ALB configuration end
+*/
