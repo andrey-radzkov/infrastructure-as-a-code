@@ -1,5 +1,7 @@
 package com.demo;
 
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,7 @@ public class DemoApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
+        AmazonElasticLoadBalancing loadBalancing = AmazonElasticLoadBalancingClientBuilder.defaultClient();
     }
 
     @GetMapping("/hello")

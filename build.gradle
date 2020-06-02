@@ -11,6 +11,9 @@ repositories {
 }
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.11.792'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-elasticloadbalancing', version: '1.11.792'
+
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
