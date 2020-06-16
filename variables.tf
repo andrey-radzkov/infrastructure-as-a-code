@@ -1,6 +1,10 @@
 variable "ami_id" {
   default = "ami-2757f631"
 }
+
+variable "nodes_count" {
+  default = 3
+}
 variable "aws_availability_zones" {
   default = [
     "us-east-1a",

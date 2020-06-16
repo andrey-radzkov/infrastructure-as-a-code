@@ -26,7 +26,7 @@ resource "aws_security_group" "default" {
  EC2 configuration
 */
 resource "aws_instance" "example" {
-  count = 3
+  count = var.nodes_count
   ami = var.ami_id
   instance_type = var.instance_type
   key_name = var.key_name
