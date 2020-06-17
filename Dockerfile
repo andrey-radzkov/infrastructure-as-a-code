@@ -1,4 +1,4 @@
-FROM openjdk:8-alpine
+FROM openjdk:8-jre-alpine
 ADD ["build/libs/infrastructure-as-a-code2-0.0.1-SNAPSHOT.jar", "app.jar"]
 EXPOSE 8080 8080
 ARG spring_profiles=docker
