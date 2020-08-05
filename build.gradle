@@ -11,6 +11,7 @@ repositories {
 }
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'software.amazon.awssdk:sqs:2.13.67'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
