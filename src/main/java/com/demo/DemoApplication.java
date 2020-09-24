@@ -2,13 +2,16 @@ package com.demo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @SpringBootApplication
 @RestController
 public class DemoApplication {
+    private List<Map<String, Object>> events = new CopyOnWriteArrayList<>();
 
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
@@ -17,6 +20,16 @@ public class DemoApplication {
     @GetMapping("/hello")
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
         return String.format("Hello %s!", name);
+    }
+
+    @PostMapping("/event")
+    public void receiveEvent(@RequestBody Map<String, Object> event) {
+        events.add(event);
+    }
+
+    @GetMapping("/event")
+    public List<Map<String, Object>> getEvent() {
+       return events;
     }
 
     @GetMapping("/")
