@@ -42,7 +42,7 @@ resource "aws_instance" "example" {
   instance_type = "t2.micro"
   key_name = "test2"
   user_data = file("./start.sh")
-
+  availability_zone = "us-east-1c"
   connection {
     host = self.public_ip
     type = "ssh"

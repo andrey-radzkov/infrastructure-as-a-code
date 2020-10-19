@@ -10,6 +10,6 @@ sudo java -jar build/libs/infrastructure-as-a-code-0.0.1-SNAPSHOT.jar
 sudo yum install -y docker
 sudo service docker start
 sudo docker pull nginx
-COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
-docker run --name nginx_0 -p 80:8080 -d nginx --name
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+docker run --name my-custom-nginx-container -v ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro -d nginx
 
