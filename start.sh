@@ -11,5 +11,5 @@ sudo yum install -y docker
 sudo service docker start
 sudo docker pull nginx
 COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
-sudo docker run -d -p 80:80 --name nginx_0 nginx
+docker run --name nginx_0 -p 80:8080 -d nginx --name
 
