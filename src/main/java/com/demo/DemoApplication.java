@@ -55,7 +55,7 @@ public class DemoApplication {
     @PutMapping("/event")
     public void sendEvent() {
 
-        String message = "message with date " + new Date().toString();
+        String message = "{\"message\": \"message with date\", \"messageDate\": \"" + new Date().toString() + "\"}";
         PutRecordRequest request = PutRecordRequest.builder()
                 .partitionKey("1") // We use the ticker symbol as the partition key, explained in the Supplemental Information section below.
                 .streamName(STREAM_NAME)
