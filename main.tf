@@ -37,6 +37,26 @@ resource "aws_security_group" "http" {
   }
 }
 
+resource "aws_security_group" "nginx" {
+
+  name = "terraform_security_group_nginx"
+  description = "AWS security group for terraform example"
+  ingress {
+    from_port = "80"
+    to_port = "80"
+    protocol = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = [
+      "0.0.0.0/0"]
+  }
+}
+
 resource "aws_instance" "example" {
   ami = "ami-2757f631"
   instance_type = "t2.micro"
@@ -53,6 +73,7 @@ resource "aws_instance" "example" {
   }
   security_groups = [
     "terraform_security_group_http",
+    "terraform_security_group_nginx",
     "terraform_security_group_ssh"]
   associate_public_ip_address = true
 }
