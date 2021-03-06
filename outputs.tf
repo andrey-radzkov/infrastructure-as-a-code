@@ -1,3 +1,3 @@
 output "public_dns" {
-  value = "${aws_instance.example.public_dns}:8080/hello"
+  value = "${aws_instance.example.public_dns}:8080/set-name?name=newName"
 }
