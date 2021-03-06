@@ -39,7 +39,7 @@ resource "aws_security_group" "http" {
 
 resource "aws_instance" "example" {
   ami = "ami-2757f631"
-  instance_type = "t2.nano"
+  instance_type = "t2.micro"
   key_name = "test2"
   user_data = file("./start.sh")
 
