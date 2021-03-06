@@ -1,7 +1,7 @@
 provider "aws" {
   profile = "default"
   region = "us-east-1"
-  shared_credentials_file = "C:/Users/a/.aws/credentials"
+  shared_credentials_file = "C:/Users/Andrey_Radzkov/.aws/credentials"
 }
 
 resource "aws_security_group" "ssh" {

@@ -1,7 +1,7 @@
 #!/bin/bash
 sudo apt-get -y update
 sudo apt-get -y install openjdk-8-jdk
-sudo git clone https://github.com/andrey-radzkov/infrastructure-as-a-code.git
+sudo git clone --single-branch --branch=feature/async-demo https://github.com/andrey-radzkov/infrastructure-as-a-code.git
 cd infrastructure-as-a-code/
 sudo chmod 777 gradlew
 sudo ./gradlew build
