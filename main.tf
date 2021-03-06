@@ -56,3 +56,9 @@ resource "aws_instance" "example" {
     "terraform_security_group_ssh"]
   associate_public_ip_address = true
 }
+
+resource "aws_sqs_queue" "terraform_queue" {
+  name                        = "demo-queue.fifo"
+  fifo_queue                  = true
+  content_based_deduplication = true
+}
