@@ -19,16 +19,16 @@ public class DemoListener {
     @Autowired
     private ThreadPoolTaskExecutor demoExecutor;
 
-//    @SqsListener(value = "demo-queue.fifo", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
-//    public void processMessage(String message) throws ExecutionException, InterruptedException {
-//        //TODO: list of messages
-//        CompletableFuture.runAsync(() -> {
-//            try {
-//                Thread.sleep(1500);
-//                log.info(message);
-//            } catch (InterruptedException e) {
-//                log.error(e.getMessage());
-//            }
-//        }, demoExecutor).get();
-//    }
+    @SqsListener(value = "demo-queue.fifo", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
+    public void processMessage(String message) throws ExecutionException, InterruptedException {
+        //TODO: list of messages
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(1500);
+                log.info(message);
+            } catch (InterruptedException e) {
+                log.error(e.getMessage());
+            }
+        }, demoExecutor).get();
+    }
 }
