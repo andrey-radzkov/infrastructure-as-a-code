@@ -4,8 +4,6 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
-import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
-import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.context.annotation.Scope;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -65,19 +63,6 @@ public class DemoController {
     public String sendName(@RequestParam(value = "name") String name) {
         queueMessagingTemplate.send("demo-queue.fifo", MessageBuilder.withPayload(name).build());
         return "will process soon";
-    }
-
-    @SqsListener(value = "demo-queue.fifo", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
-    public void processMessage(String message) throws ExecutionException, InterruptedException {
-        CompletableFuture.runAsync(() -> {
-            try {
-                Thread.sleep(1500);
-                System.out.println(message);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }, demoExecutor).get();
-        //TODO: think about behavior
     }
 
     @GetMapping("/")
