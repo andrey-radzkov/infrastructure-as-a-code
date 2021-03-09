@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -51,9 +52,10 @@ public class DemoController {
     }
 
     @GetMapping("/get-name-async")
-    public String getNameAsync(@CookieValue("JSESSIONID") String sessionId) {
+    public String getNameAsync(@CookieValue(value = "JSESSIONID",defaultValue = "") String sessionId) {
 
-        return "hello " + listener.getMessages().get(sessionId).getMessage();
+        SqsMessage sqsMessage = listener.getMessages().get(sessionId);
+        return "hello " + sqsMessage.getMessage();
     }
 
     @GetMapping("/set-name")
@@ -74,7 +76,7 @@ public class DemoController {
         try {
             Map<String, Object> headers = new HashMap<>();
             headers.put("message-group-id", "1");
-            SqsMessage sqsMessage = new SqsMessage(name, sessionId);
+            SqsMessage sqsMessage = new SqsMessage(name, sessionId != null ? sessionId : UUID.randomUUID().toString());
             queueMessagingTemplate.convertAndSend("demo-queue.fifo", sqsMessage, headers);
         } catch (Exception e) {
             return e.getMessage();
