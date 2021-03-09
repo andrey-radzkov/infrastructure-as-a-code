@@ -55,7 +55,7 @@ public class DemoController {
     public String getNameAsync(@CookieValue(value = "JSESSIONID", defaultValue = "", required = false) String sessionId) {
 
         SqsMessage sqsMessage = listener.getMessages().get(sessionId);
-        return "hello " + sqsMessage.getMessage();
+        return sqsMessage!=null?"hello " + sqsMessage.getMessage(): "your message was not processed";
     }
 
     @GetMapping("/set-name")
