@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.context.annotation.Scope;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -61,7 +60,11 @@ public class DemoController {
 
     @GetMapping("/send-name")
     public String sendName(@RequestParam(value = "name") String name) {
-        queueMessagingTemplate.send("demo-queue.fifo", MessageBuilder.withPayload(name).build());
+        try {
+            queueMessagingTemplate.convertAndSend("demo-queue.fifo", name);
+        } catch (Exception e) {
+            return e.getMessage();
+        }
         return "will process soon";
     }
 

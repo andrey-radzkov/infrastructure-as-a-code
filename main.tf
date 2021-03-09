@@ -82,6 +82,11 @@ resource "aws_iam_role_policy_attachment" "ec2-attach" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "cloud-watch-attach" {
+  role = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+}
+
 resource "aws_iam_role_policy_attachment" "server_policy" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = aws_iam_policy.server_policy.arn
