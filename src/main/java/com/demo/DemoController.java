@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -61,7 +63,9 @@ public class DemoController {
     @GetMapping("/send-name")
     public String sendName(@RequestParam(value = "name") String name) {
         try {
-            queueMessagingTemplate.convertAndSend("demo-queue.fifo", name);
+            Map<String, Object> headers = new HashMap<>();
+            headers.put("message-group-id", "1");
+            queueMessagingTemplate.convertAndSend("demo-queue.fifo", name, headers);
         } catch (Exception e) {
             return e.getMessage();
         }
