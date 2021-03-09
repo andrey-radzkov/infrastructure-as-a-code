@@ -1,0 +1,7 @@
+cloud:
+  aws:
+    stack:
+      auto: false
+
+aws:
+  region: eu-east-1
