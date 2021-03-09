@@ -52,7 +52,7 @@ public class DemoController {
     }
 
     @GetMapping("/get-name-async")
-    public String getNameAsync(@CookieValue(value = "JSESSIONID",defaultValue = "") String sessionId) {
+    public String getNameAsync(@CookieValue(value = "JSESSIONID", defaultValue = "", required = false) String sessionId) {
 
         SqsMessage sqsMessage = listener.getMessages().get(sessionId);
         return "hello " + sqsMessage.getMessage();
@@ -72,7 +72,7 @@ public class DemoController {
     }
 
     @GetMapping("/send-name")
-    public String sendName(@RequestParam(value = "name") String name, @CookieValue("JSESSIONID") String sessionId) {
+    public String sendName(@RequestParam(value = "name") String name, @CookieValue(value = "JSESSIONID", defaultValue = "", required = false) String sessionId) {
         try {
             Map<String, Object> headers = new HashMap<>();
             headers.put("message-group-id", "1");
