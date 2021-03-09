@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +29,8 @@ public class DemoController {
     private QueueMessagingTemplate queueMessagingTemplate;
     @Autowired
     private AmazonSQSAsync amazonSqs;
+    @Autowired
+    private DemoListener listener;
 
     @PostConstruct
     public void init() {
@@ -47,6 +50,12 @@ public class DemoController {
         return "hello " + this.name;
     }
 
+    @GetMapping("/get-name-async")
+    public String getNameAsync(@CookieValue("JSESSIONID") String sessionId) {
+
+        return "hello " + listener.getMessages().get(sessionId).getMessage();
+    }
+
     @GetMapping("/set-name")
     public String setName(@RequestParam(value = "name") String name) throws InterruptedException, ExecutionException {
         CompletableFuture.runAsync(() -> {
@@ -61,11 +70,12 @@ public class DemoController {
     }
 
     @GetMapping("/send-name")
-    public String sendName(@RequestParam(value = "name") String name) {
+    public String sendName(@RequestParam(value = "name") String name, @CookieValue("JSESSIONID") String sessionId) {
         try {
             Map<String, Object> headers = new HashMap<>();
             headers.put("message-group-id", "1");
-            queueMessagingTemplate.convertAndSend("demo-queue.fifo", name, headers);
+            SqsMessage sqsMessage = new SqsMessage(name, sessionId);
+            queueMessagingTemplate.convertAndSend("demo-queue.fifo", sqsMessage, headers);
         } catch (Exception e) {
             return e.getMessage();
         }
