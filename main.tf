@@ -37,12 +37,72 @@ resource "aws_security_group" "http" {
   }
 }
 
+
+resource "aws_iam_role" "ec2_role" {
+  name = "ec2_role"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy" "server_policy" {
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:Describe*"]
+        Effect = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
+}
+
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "ec2_profile"
+  role = aws_iam_role.ec2_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "ec2-attach" {
+  role = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "server_policy" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.server_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "sqs-attach" {
+  role = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "cloudformation-attach" {
+  role = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSCloudFormationFullAccess"
+}
+
 resource "aws_instance" "example" {
   ami = "ami-2757f631"
   instance_type = "t2.micro"
   key_name = "test2"
   user_data = file("./start.sh")
-
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
   connection {
     host = self.public_ip
     type = "ssh"
@@ -58,7 +118,7 @@ resource "aws_instance" "example" {
 }
 
 resource "aws_sqs_queue" "terraform_queue" {
-  name                        = "demo-queue.fifo"
-  fifo_queue                  = true
+  name = "demo-queue.fifo"
+  fifo_queue = true
   content_based_deduplication = true
 }
