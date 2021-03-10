@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 @Component
@@ -22,7 +23,7 @@ public class DemoListener {
     @Qualifier("demoExecutor")
     @Autowired
     private ThreadPoolTaskExecutor demoExecutor;
-    private final Map<String, SqsMessage> messages = new HashMap<>();
+    private final Map<String, SqsMessage> messages = new ConcurrentHashMap<>();
 
     @SqsListener(value = "demo-queue.fifo", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
     public void processMessage(String message) throws ExecutionException, InterruptedException {
