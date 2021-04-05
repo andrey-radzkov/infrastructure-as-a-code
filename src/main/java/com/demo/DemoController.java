@@ -9,7 +9,10 @@ import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ResourceUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,93 +32,87 @@ import static org.springframework.web.context.WebApplicationContext.SCOPE_SESSIO
 @Scope(SCOPE_SESSION)
 public class DemoController {
     private static final Logger log = LoggerFactory.getLogger(DemoController.class);
-
-    private String name;
     @Qualifier("demoExecutor")
     @Autowired
     private ThreadPoolTaskExecutor demoExecutor;
 
-    private final Map<String, QueueMessage> messages = new ConcurrentHashMap<>();
-    private final Map<String, QueueMessage> processedMessages = new ConcurrentHashMap<>();
-
-    @GetMapping("/get-name")
-    public String getName() throws InterruptedException, ExecutionException {
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }, demoExecutor).get();
-        return "hello " + this.name;
-    }
-
-    @GetMapping("/get-name-async")
-    public String getNameAsync(@CookieValue(value = "JSESSIONID", defaultValue = "", required = false) String sessionId) {
-
-        QueueMessage queueMessage = processedMessages.get(sessionId);
-        return queueMessage != null ? "hello " + queueMessage.getMessage() : "your message was not processed";
-    }
+    private final Map<String, Order> messages = new ConcurrentHashMap<>();
+    private final Map<String, Order> processedMessages = new ConcurrentHashMap<>();
 
     @GetMapping("/order")
     public String syncOrder() throws IOException {
-        return getPage("sync.html");
+        return getPage("order.html").replace("#METHOD", "/order");
     }
 
-    private String getPage(String page) throws IOException {
-        File file = ResourceUtils.getFile("classpath:" + page);
-        return new String(Files.readAllBytes(file.toPath()));
+    @GetMapping("/order-async")
+    public String asyncOrder() throws IOException {
+        return getPage("order.html").replace("#METHOD", "/order-async");
+    }
+
+    @GetMapping("/check")
+    public String check(@CookieValue(value = "JSESSIONID", defaultValue = "", required = false) String sessionId) throws IOException {
+        Order order = processedMessages.get(sessionId);
+        if (order != null) {
+            return getPage("ordered.html")
+                    .replace("#MESSAGE", "Комплектация завершена успешно")
+                    .replace("#ORDER_NUMBER", order.getNumber())
+                    .replace("#SHIP_NUMBER", order.getShipNumber())
+                    .replace("#CONTAINER_NUMBER", order.getContainerNumber())
+                    .replace("#START_DATE", order.getStartDate())
+                    .replace("#END_DATE", order.getEndDate())
+                    .replace("#EMAIL", order.getEmail())
+                    .replace("#ORDER_LINK", "/order-async");
+        } else {
+            return getPage("ordered.html")
+                    .replace("#MESSAGE", "Комплектация не завершена. Проверьте, пожалуйста, позже")
+                    .replace("#ORDER_NUMBER", "")
+                    .replace("#SHIP_NUMBER", "")
+                    .replace("#CONTAINER_NUMBER", "")
+                    .replace("#START_DATE", "")
+                    .replace("#END_DATE", "")
+                    .replace("#EMAIL", "")
+                    .replace("#ORDER_LINK", "/order-async");
+        }
+    }
+
+    @PostMapping(value = "/order-async", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public String sendOrder(Order order, @CookieValue(value = "JSESSIONID", defaultValue = "", required = false) String sessionId) throws InterruptedException, ExecutionException, IOException {
+        messages.put(sessionId, order);
+        return getPage("async.html")
+                .replace("#ORDER_NUMBER", UUID.randomUUID().toString());
     }
 
     @PostMapping(value = "/order", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public String addOrder(Order order) throws InterruptedException, ExecutionException, IOException {
         CompletableFuture.runAsync(() -> {
             try {
-                Thread.sleep(1500);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }, demoExecutor).get();
-        return getPage("sync-ordered.html")
+        return getPage("ordered.html")
+                .replace("#MESSAGE", "Комплектация завершена успешно")
                 .replace("#ORDER_NUMBER", UUID.randomUUID().toString())
                 .replace("#SHIP_NUMBER", Integer.toString(new Random().nextInt(5)))
                 .replace("#CONTAINER_NUMBER", new Random().nextInt(20) + "-" + new Random().nextInt(20) + "-" + new Random().nextInt(20))
                 .replace("#START_DATE", new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(1).toString())
                 .replace("#END_DATE", new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(7).toString())
-                .replace("#EMAIL", order.getEmail());
+                .replace("#EMAIL", order.getEmail())
+                .replace("#ORDER_LINK", "/order");
     }
 
-    @GetMapping("/set-name")
-    public String setName(@RequestParam(value = "name") String name) throws InterruptedException, ExecutionException {
-        CompletableFuture.runAsync(() -> {
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }, demoExecutor).get();
-        this.name = name;
-        return name;
-    }
-
-    @GetMapping("/send-name")
-    public String sendName(@RequestParam(value = "name") String name, @CookieValue(value = "JSESSIONID", defaultValue = "", required = false) String sessionId) {
-        try {
-            QueueMessage queueMessage = new QueueMessage(name, sessionId != null ? sessionId : UUID.randomUUID().toString());
-            messages.put(sessionId, queueMessage);
-        } catch (Exception e) {
-            return e.getMessage();
-        }
-        return "will process soon";
-    }
-
-    @Scheduled(fixedDelay = 1000L)
+    @Scheduled(fixedDelay = 2000L)
     public void processMessages() throws ExecutionException, InterruptedException {
         CompletableFuture.runAsync(() -> {
             try {
-                Thread.sleep(1500);
+                Thread.sleep(2000);
                 messages.forEach((key, value) -> {
+                    value.setNumber(UUID.randomUUID().toString());
+                    value.setShipNumber(Integer.toString(new Random().nextInt(5)));
+                    value.setContainerNumber(new Random().nextInt(20) + "-" + new Random().nextInt(20) + "-" + new Random().nextInt(20));
+                    value.setStartDate(new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(1).toString());
+                    value.setEndDate(new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(7).toString());
                     processedMessages.put(key, value);
                     messages.remove(key);
                     log.info(key);
@@ -129,5 +126,10 @@ public class DemoController {
     @GetMapping("/")
     public String healthCheck() {
         return "OK";
+    }
+
+    private String getPage(String page) throws IOException {
+        File file = ResourceUtils.getFile("classpath:" + page);
+        return new String(Files.readAllBytes(file.toPath()));
     }
 }
