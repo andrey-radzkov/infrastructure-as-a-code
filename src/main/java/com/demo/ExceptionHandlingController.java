@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @Controller
 public class ExceptionHandlingController {
-    private static final Logger log = LoggerFactory.getLogger(DemoListener.class);
+    private static final Logger log = LoggerFactory.getLogger(ExceptionHandlingController.class);
 
     @ExceptionHandler(Exception.class)
     public String handleError(HttpServletRequest req, Exception ex) {

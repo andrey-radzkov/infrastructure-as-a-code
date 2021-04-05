@@ -10,8 +10,8 @@ public class DemoConf {
     public ThreadPoolTaskExecutor demoExecutor() {
         ThreadPoolTaskExecutor demoExecutor = new ThreadPoolTaskExecutor();
         demoExecutor.setCorePoolSize(5);
-        demoExecutor.setMaxPoolSize(10);
-        demoExecutor.setQueueCapacity(100);
+        demoExecutor.setMaxPoolSize(20);
+        demoExecutor.setQueueCapacity(50);
         return demoExecutor;
     }
 }

@@ -1,13 +1,13 @@
 package com.demo;
 
-public class SqsMessage {
+public class QueueMessage {
     private String message;
     private String sessionId;
 
-    public SqsMessage() {
+    public QueueMessage() {
     }
 
-    public SqsMessage(String message, String sessionId) {
+    public QueueMessage(String message, String sessionId) {
         this.message = message;
         this.sessionId = sessionId;
     }
