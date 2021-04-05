@@ -5,18 +5,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.util.ResourceUtils;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Map;
@@ -129,7 +130,12 @@ public class DemoController {
     }
 
     private String getPage(String page) throws IOException {
-        File file = ResourceUtils.getFile("classpath:" + page);
-        return new String(Files.readAllBytes(file.toPath()));
+        String data;
+        ClassPathResource cpr = new ClassPathResource(page);
+        try (InputStream inputStream = cpr.getInputStream()) {
+            byte[] bdata = FileCopyUtils.copyToByteArray(inputStream);
+            data = new String(bdata, StandardCharsets.UTF_8);
+        }
+        return data;
     }
 }
