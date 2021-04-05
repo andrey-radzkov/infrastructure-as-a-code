@@ -65,6 +65,7 @@ public class DemoController {
                     .replace("#ORDER_LINK", "/order-async");
         } else {
             return getPage("ordered.html")
+                    .replace("<div class=\"mark\"></div>", "")
                     .replace("#MESSAGE", "Комплектация не завершена. Проверьте, пожалуйста, позже")
                     .replace("#ORDER_NUMBER", "")
                     .replace("#SHIP_NUMBER", "")
