@@ -117,8 +117,8 @@ resource "aws_instance" "example" {
     timeout = "1m"
   }
   security_groups = [
-    "terraform_security_group_http",
-    "terraform_security_group_ssh"]
+    "terraform_security_group_http"
+  ]
   associate_public_ip_address = true
 }
 
