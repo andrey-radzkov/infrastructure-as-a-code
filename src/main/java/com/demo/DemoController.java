@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -51,8 +53,8 @@ public class DemoController {
     }
 
     @GetMapping("/check")
-    public String check(@CookieValue(value = "JSESSIONID", defaultValue = "", required = false) String sessionId) throws IOException {
-        Order order = processedMessages.get(sessionId);
+    public String check(@CookieValue(value = "orderID", defaultValue = "", required = false) String orderID) throws IOException {
+        Order order = processedMessages.get(orderID);
         if (order != null) {
             return getPage("ordered.html")
                     .replace("#MESSAGE", "Комплектация завершена успешно")
@@ -78,10 +80,14 @@ public class DemoController {
     }
 
     @PostMapping(value = "/order-async", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public String sendOrder(Order order, @CookieValue(value = "JSESSIONID", defaultValue = "", required = false) String sessionId) throws InterruptedException, ExecutionException, IOException {
-        messages.put(sessionId, order);
+    public String sendOrder(HttpServletResponse response, Order order) throws IOException {
+        final String uiud = UUID.randomUUID().toString();
+        Cookie cookie = new Cookie("orderID", uiud);
+        response.addCookie(cookie);
+        order.setNumber(uiud);
+        messages.put(uiud, order);
         return getPage("async.html")
-                .replace("#ORDER_NUMBER", UUID.randomUUID().toString());
+                .replace("#ORDER_NUMBER", uiud);
     }
 
     @PostMapping(value = "/order", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
@@ -110,7 +116,6 @@ public class DemoController {
             try {
                 Thread.sleep(2000);
                 messages.forEach((key, value) -> {
-                    value.setNumber(UUID.randomUUID().toString());
                     value.setShipNumber(Integer.toString(new Random().nextInt(5)));
                     value.setContainerNumber(new Random().nextInt(20) + "-" + new Random().nextInt(20) + "-" + new Random().nextInt(10));
                     value.setStartDate(new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(1).toString());
