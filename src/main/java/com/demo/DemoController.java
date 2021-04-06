@@ -97,7 +97,7 @@ public class DemoController {
                 .replace("#MESSAGE", "Комплектация завершена успешно")
                 .replace("#ORDER_NUMBER", UUID.randomUUID().toString())
                 .replace("#SHIP_NUMBER", Integer.toString(new Random().nextInt(5)))
-                .replace("#CONTAINER_NUMBER", new Random().nextInt(20) + "-" + new Random().nextInt(20) + "-" + new Random().nextInt(20))
+                .replace("#CONTAINER_NUMBER", new Random().nextInt(20) + "-" + new Random().nextInt(20) + "-" + new Random().nextInt(10))
                 .replace("#START_DATE", new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(1).toString())
                 .replace("#END_DATE", new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(7).toString())
                 .replace("#EMAIL", order.getEmail())
@@ -112,7 +112,7 @@ public class DemoController {
                 messages.forEach((key, value) -> {
                     value.setNumber(UUID.randomUUID().toString());
                     value.setShipNumber(Integer.toString(new Random().nextInt(5)));
-                    value.setContainerNumber(new Random().nextInt(20) + "-" + new Random().nextInt(20) + "-" + new Random().nextInt(20));
+                    value.setContainerNumber(new Random().nextInt(20) + "-" + new Random().nextInt(20) + "-" + new Random().nextInt(10));
                     value.setStartDate(new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(1).toString());
                     value.setEndDate(new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(7).toString());
                     processedMessages.put(key, value);
