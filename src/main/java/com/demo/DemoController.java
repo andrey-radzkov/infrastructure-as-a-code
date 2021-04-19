@@ -21,10 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -110,20 +107,22 @@ public class DemoController {
                 .replace("#ORDER_LINK", "/order");
     }
 
-    @Scheduled(fixedDelay = 2000L)
+    @Scheduled(fixedDelay = 4997L)
     public void processMessages() throws ExecutionException, InterruptedException {
         CompletableFuture.runAsync(() -> {
             try {
                 Thread.sleep(2000);
+                List<String> toDelete = new ArrayList<>();
                 messages.forEach((key, value) -> {
                     value.setShipNumber(Integer.toString(new Random().nextInt(5)));
                     value.setContainerNumber(new Random().nextInt(20) + "-" + new Random().nextInt(20) + "-" + new Random().nextInt(10));
                     value.setStartDate(new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(1).toString());
                     value.setEndDate(new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(7).toString());
                     processedMessages.put(key, value);
-                    messages.remove(key);
+                    toDelete.add(key);
                     log.info(key);
                 });
+                toDelete.forEach(messages::remove);
             } catch (InterruptedException e) {
                 log.error(e.getMessage());
             }
