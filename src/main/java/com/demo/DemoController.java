@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import static org.springframework.web.context.WebApplicationContext.SCOPE_SESSION;
@@ -35,9 +34,8 @@ public class DemoController {
     @Qualifier("demoExecutor")
     @Autowired
     private ThreadPoolTaskExecutor demoExecutor;
-
-    private final Map<String, Order> messages = new ConcurrentHashMap<>();
-    private final Map<String, Order> processedMessages = new ConcurrentHashMap<>();
+    @Autowired
+    private MessagesStorage messagesStorage;
 
     @GetMapping("/order")
     public String syncOrder() throws IOException {
@@ -51,7 +49,7 @@ public class DemoController {
 
     @GetMapping("/check")
     public String check(@CookieValue(value = "orderID", defaultValue = "", required = false) String orderID) throws IOException {
-        Order order = processedMessages.get(orderID);
+        Order order = messagesStorage.getProcessedMessages().get(orderID);
         if (order != null) {
             return getPage("ordered.html")
                     .replace("#MESSAGE", "Комплектация завершена успешно")
@@ -82,7 +80,7 @@ public class DemoController {
         Cookie cookie = new Cookie("orderID", uiud);
         response.addCookie(cookie);
         order.setNumber(uiud);
-        messages.put(uiud, order);
+        messagesStorage.getMessages().put(uiud, order);
         return getPage("async.html")
                 .replace("#ORDER_NUMBER", uiud);
     }
@@ -105,28 +103,6 @@ public class DemoController {
                 .replace("#END_DATE", new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(7).toString())
                 .replace("#EMAIL", order.getEmail())
                 .replace("#ORDER_LINK", "/order");
-    }
-
-    @Scheduled(fixedDelay = 4997L)
-    public void processMessages() throws ExecutionException, InterruptedException {
-        CompletableFuture.runAsync(() -> {
-            try {
-                Thread.sleep(2000);
-                List<String> toDelete = new ArrayList<>();
-                messages.forEach((key, value) -> {
-                    value.setShipNumber(Integer.toString(new Random().nextInt(5)));
-                    value.setContainerNumber(new Random().nextInt(20) + "-" + new Random().nextInt(20) + "-" + new Random().nextInt(10));
-                    value.setStartDate(new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(1).toString());
-                    value.setEndDate(new Date().toInstant().atZone(ZoneId.systemDefault()).plusDays(7).toString());
-                    processedMessages.put(key, value);
-                    toDelete.add(key);
-                    log.info(key);
-                });
-                toDelete.forEach(messages::remove);
-            } catch (InterruptedException e) {
-                log.error(e.getMessage());
-            }
-        }, demoExecutor).get();
     }
 
     @GetMapping("/")
