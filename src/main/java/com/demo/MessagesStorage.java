@@ -36,7 +36,7 @@ public class MessagesStorage {
         return processedMessages;
     }
 
-    @Scheduled(fixedDelay = 2197L)
+    @Scheduled(fixedDelay = 7197L)
     public void processMessages() throws ExecutionException, InterruptedException {
         CompletableFuture.runAsync(() -> {
             try {
