@@ -27,6 +27,7 @@ dependencies {
     implementation("com.github.ozlerhakan:poiji:3.1.1")
     implementation("org.apache.poi:poi:5.0.0")
     implementation("org.apache.poi:poi-ooxml:5.0.0")
+    implementation("org.jfree:jfreechart:1.5.3")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 

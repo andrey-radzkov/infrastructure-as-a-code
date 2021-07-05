@@ -1,5 +1,6 @@
 package com.demo;
 
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -15,25 +16,17 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.demo.HttpUtil.executeHttp;
+import static com.demo.KeyUtil.getApiKey;
 import static com.poiji.bind.Poiji.fromExcel;
 
 
-public class DemoApplication {
-    public static final String API_KEY1 = "WHIQGIT86LA8T5KA";
-    public static final String API_KEY2 = "6O4W5HH7NQUORB2Z";
-    public static final String API_KEY3 = "5ALCZYTSFW3KMSV4";
-    public static final String API_KEY4 = "9VCH0XM409DI1ZF3";
-    public static final String API_KEY5 = "CFD6QEHK5UEK5SVQ";
-    public static final String[] API_KEYS = {API_KEY1, API_KEY2, API_KEY3, API_KEY4, API_KEY5};
-    public static final Map<String, Integer> keyUsageCount = new HashMap<>();
+public class GeneralPerformanceAnalysys {
+
     public static final double GROW_FACTOR = 1.2;
     public static final int PE_TRASHHOLD = 50;
-    /**
-     * Limit is 500 calls per day per api key
-     */
-    public static final int DAILY_LIMIT = 500;
-    public static final int MINUTE_LIMIT = 5;
     public static final String REPORT_PATH = "D:/projects/infrastructure-as-a-code/src/main/resources/stocks_report.xlsx";
+    public static final String M_A_T_S = "Monthly Adjusted Time Series";
 
     //TODO: skip not interesting in future
     //https://github.com/shilewenuw/get_all_tickers/blob/master/get_all_tickers/tickers.csv
@@ -51,7 +44,7 @@ public class DemoApplication {
         FileInputStream inputStream = new FileInputStream(REPORT_PATH);
         Workbook workbook = WorkbookFactory.create(inputStream);
         final List<CompanyReport> companyReports = fromExcel(Paths.get(REPORT_PATH).toFile(), CompanyReport.class);
-        companyReports.stream().filter(DemoApplication::skipByDate)
+        companyReports.stream().filter(GeneralPerformanceAnalysys::skipByDate)
                 .forEach((report) -> globalIndicatorsForCode(report, workbook));
 
     }
@@ -106,14 +99,14 @@ public class DemoApplication {
         final EasyJson mounthly = executeHttp("https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=" + code + "&apikey=" + getApiKey());
         Map<String, String> indicators = new HashMap<>();
         try {
-            final List<String> dates = ((JSONObject) mounthly.get("Monthly Adjusted Time Series")).toMap().keySet().stream().sorted(Collections.reverseOrder()).collect(Collectors.toList());
+            final List<String> dates = ((JSONObject) mounthly.get(M_A_T_S)).toMap().keySet().stream().sorted(Collections.reverseOrder()).collect(Collectors.toList());
             if (dates.size() > 60) { //TODO: common case
-                final double year5 = Double.parseDouble(mounthly.getT("Monthly Adjusted Time Series." + dates.get(60) + ".4\\. close"));
-                final double year4 = Double.parseDouble(mounthly.getT("Monthly Adjusted Time Series." + dates.get(48) + ".4\\. close"));
-                final double year3 = Double.parseDouble(mounthly.getT("Monthly Adjusted Time Series." + dates.get(36) + ".4\\. close"));
-                final double year2 = Double.parseDouble(mounthly.getT("Monthly Adjusted Time Series." + dates.get(24) + ".4\\. close"));
-                final double year1 = Double.parseDouble(mounthly.getT("Monthly Adjusted Time Series." + dates.get(12) + ".4\\. close"));
-                final double year0 = Double.parseDouble(mounthly.getT("Monthly Adjusted Time Series." + dates.get(0) + ".4\\. close"));
+                final double year5 = getPrice(mounthly, dates.get(60));
+                final double year4 = getPrice(mounthly, dates.get(48));
+                final double year3 = getPrice(mounthly, dates.get(36));
+                final double year2 = getPrice(mounthly, dates.get(24));
+                final double year1 = getPrice(mounthly, dates.get(12));
+                final double year0 = getPrice(mounthly, dates.get(0));
                 if (year0 > year5 * 2) {
                     indicators.put("5 year grow", String.format("%.2f", year0 / year5));
                 }
@@ -132,6 +125,16 @@ public class DemoApplication {
         return indicators;
     }
 
+    /**
+     * Open * (adjusted close/close)
+     */
+    public static double getPrice(EasyJson mounthly, String date) {
+        final double close = Double.parseDouble(mounthly.getT(M_A_T_S + "." + date + ".4\\. close"));
+        final double open = Double.parseDouble(mounthly.getT(M_A_T_S + "." + date + ".1\\. open"));
+        final double adjustedClose = Double.parseDouble(mounthly.getT(M_A_T_S + "." + date + ".5\\. adjusted close"));
+        return open * (adjustedClose / close);
+    }
+
     private static Map<String, String> findLowPERatio(EasyJson overview) {
         final String peRatio = overview.getT("PERatio");
         Map<String, String> indicators = new HashMap<>();
@@ -142,36 +145,5 @@ public class DemoApplication {
         return indicators;
     }
 
-    private static EasyJson executeHttp(String url) {
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            HttpGet getRequest = new HttpGet(url);
-            CloseableHttpResponse response = httpClient.execute(getRequest);
-            String responseString = EntityUtils.toString(response.getEntity(), "utf-8");
-            return new EasyJson(responseString);
-        } catch (IOException e) {
-            throw new RuntimeException("Error during the api call", e);
-        }
-    }
 
-    private static String getApiKey() {
-        //TODO: dayli limit + rotation
-        try {
-            Thread.sleep(60000 / MINUTE_LIMIT);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        int i = 0;
-        int usage;
-        String currentKey;
-        do {
-            currentKey = API_KEYS[i];
-            usage = keyUsageCount.getOrDefault(currentKey, 0);
-            keyUsageCount.put(currentKey, usage + 1);
-            i++;
-        } while (usage == DAILY_LIMIT && (i != API_KEYS.length));
-        if (currentKey == null) {
-            System.exit(0);
-        }
-        return currentKey;
-    }
 }
