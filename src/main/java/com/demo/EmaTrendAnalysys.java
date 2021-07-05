@@ -26,20 +26,19 @@ import static com.demo.KeyUtil.getApiKey;
 
 public class EmaTrendAnalysys {
     public static final String LONG_INTERVAL = "daily";
-//    public static final String SHORT_INTERVAL = "60min";
+    //    public static final String SHORT_INTERVAL = "60min";
     public static final String SHORT_INTERVAL = "daily";
-//    public static final String S_T_P = "10";
-    public static final String S_T_P = "60";
+    //    public static final String S_T_P = "10";
+    public static final String S_T_P = "30";
     public static final String L_T_P = "200";
     public static final String T_S_D = "Time Series (Daily)";
     public static final int WIDTH = 1150;
     public static final int HEIGHT = 650;
     public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-//    public static final SimpleDateFormat SIMPLE_DATE_FORMAT_EMA = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-    public static final SimpleDateFormat SIMPLE_DATE_FORMAT_EMA = new SimpleDateFormat("yyyy-MM-dd");
+    //    public static final SimpleDateFormat SIMPLE_DATE_FORMAT_EMA = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+    public static final SimpleDateFormat SIMPLE_DATE_FORMAT_EMA = SHORT_INTERVAL.equals("daily") ? new SimpleDateFormat("yyyy-MM-dd") : new SimpleDateFormat("yyyy-MM-dd hh:mm");
     public static final String T_A_E = "Technical Analysis: EMA";
-    //    public static String code = "AAPL";
-    public static String code = "SPCE";
+    public static String code = "AAPL";
 
     public static void main(String[] args) throws IOException {
         final EasyJson shortTrend = executeHttp("https://www.alphavantage.co/query?function=EMA&symbol=" + code + "&interval=" + SHORT_INTERVAL + "&time_period=" + S_T_P + "&series_type=close&apikey=" + getApiKey());
