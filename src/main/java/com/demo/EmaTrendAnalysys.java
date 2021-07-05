@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 import static com.demo.HttpUtil.executeHttp;
 import static com.demo.KeyUtil.getApiKey;
+import static com.poiji.bind.Poiji.fromExcel;
 
 public class EmaTrendAnalysys {
     public static final String LONG_INTERVAL = "daily";
@@ -38,20 +40,41 @@ public class EmaTrendAnalysys {
     public static final SimpleDateFormat SIMPLE_DATE_FORMAT_EMA = SHORT_INTERVAL.equals("daily") ? new SimpleDateFormat("yyyy-MM-dd") : new SimpleDateFormat("yyyy-MM-dd hh:mm");
     public static final String T_A_E = "Technical Analysis: EMA";
     public static String code = "AAPL";
+    public static final String REPORT_PATH = "D:/projects/infrastructure-as-a-code/src/main/resources/stocks_report.xlsx";
+
 
     public static void main(String[] args) throws IOException {
-        final EasyJson shortTrend = executeHttp("https://www.alphavantage.co/query?function=EMA&symbol=" + code + "&interval=" + SHORT_INTERVAL + "&time_period=" + S_T_P + "&series_type=close&apikey=" + getApiKey());
-        final EasyJson longTrend = executeHttp("https://www.alphavantage.co/query?function=EMA&symbol=" + code + "&interval=" + LONG_INTERVAL + "&time_period=" + L_T_P + "&series_type=close&apikey=" + getApiKey());
-        final EasyJson daily = executeHttp("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=" + code + "&apikey=" + getApiKey());
+//        final List<CompanyReport> companyReports = fromExcel(Paths.get(REPORT_PATH).toFile(), CompanyReport.class);
+//        companyReports.stream().filter(GeneralPerformanceAnalysys::skipByDate)
+//                .map(CompanyReport::getCode)
+//                .forEach((code) -> {
+//                    try {
+//                        createChart(code);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                });
 
-        JFreeChart chart = ChartFactory.createTimeSeriesChart(
-                "EMA" + L_T_P + "-EMA" + S_T_P + " " + code,
-                "Date",
-                "Price($)",
-                createDataset(daily, shortTrend, longTrend)
-        );
-        chartCustomization(chart);
-        ChartUtils.saveChartAsPNG(new File("D:\\projects\\infrastructure-as-a-code\\src\\main\\resources\\ema" + L_T_P + "-ema" + S_T_P + "-" + code + ".png"), chart, WIDTH, HEIGHT);
+        createChart(code);
+    }
+
+    private static void createChart(String code) throws IOException {
+        try {
+            final EasyJson shortTrend = executeHttp("https://www.alphavantage.co/query?function=EMA&symbol=" + code + "&interval=" + SHORT_INTERVAL + "&time_period=" + S_T_P + "&series_type=close&apikey=" + getApiKey());
+            final EasyJson longTrend = executeHttp("https://www.alphavantage.co/query?function=EMA&symbol=" + code + "&interval=" + LONG_INTERVAL + "&time_period=" + L_T_P + "&series_type=close&apikey=" + getApiKey());
+            final EasyJson daily = executeHttp("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=" + code + "&apikey=" + getApiKey());
+
+            JFreeChart chart = ChartFactory.createTimeSeriesChart(
+                    "EMA" + L_T_P + "-EMA" + S_T_P + " " + code,
+                    "Date",
+                    "Price($)",
+                    createDataset(daily, shortTrend, longTrend)
+            );
+            chartCustomization(chart);
+            ChartUtils.saveChartAsPNG(new File("D:\\projects\\infrastructure-as-a-code\\src\\main\\resources\\ema" + L_T_P + "-ema" + S_T_P + "-" + code + ".png"), chart, WIDTH, HEIGHT);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void chartCustomization(JFreeChart chart) {

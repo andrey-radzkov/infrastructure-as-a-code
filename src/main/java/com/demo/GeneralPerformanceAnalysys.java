@@ -49,7 +49,7 @@ public class GeneralPerformanceAnalysys {
 
     }
 
-    private static boolean skipByDate(CompanyReport companyReport) {
+    public static boolean skipByDate(CompanyReport companyReport) {
         //TODO: check by outdated
         return companyReport.getLastCheckDate() == null;
     }
