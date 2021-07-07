@@ -1,5 +1,9 @@
 package com.demo;
 
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
@@ -14,14 +18,18 @@ import org.json.JSONObject;
 
 import java.awt.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.demo.GeneralPerformanceAnalysys.updateCell;
 import static com.demo.HttpUtil.executeHttp;
 import static com.demo.KeyUtil.getApiKey;
 import static com.poiji.bind.Poiji.fromExcel;
@@ -39,39 +47,50 @@ public class EmaTrendAnalysys {
     public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     public static final SimpleDateFormat SIMPLE_DATE_FORMAT_EMA = SHORT_INTERVAL.equals("daily") ? new SimpleDateFormat("yyyy-MM-dd") : new SimpleDateFormat("yyyy-MM-dd hh:mm");
     public static final String T_A_E = "Technical Analysis: EMA";
-    public static String code = "AAPL";
-    public static final String REPORT_PATH = "D:/projects/infrastructure-as-a-code/src/main/resources/stocks_report.xlsx";
+    public static String code = "AMZN";
+    public static final String REPORT_PATH = "D:/projects/infrastructure-as-a-code/src/main/resources/stocks_EMA_report.xlsx";
 
 
     public static void main(String[] args) throws IOException {
+//        FileInputStream inputStream = new FileInputStream(REPORT_PATH);
+//        Workbook workbook = WorkbookFactory.create(inputStream);
 //        final List<CompanyReport> companyReports = fromExcel(Paths.get(REPORT_PATH).toFile(), CompanyReport.class);
 //        companyReports.stream().filter(GeneralPerformanceAnalysys::skipByDate)
-//                .map(CompanyReport::getCode)
-//                .forEach((code) -> {
+//                .forEach((report) -> {
 //                    try {
-//                        createChart(code);
+//                        createChart(report, workbook);
 //                    } catch (IOException e) {
 //                        e.printStackTrace();
 //                    }
 //                });
 
-        createChart(code);
+        createChart(new CompanyReport() {{
+            setCode(code);
+        }}, null);
     }
 
-    private static void createChart(String code) throws IOException {
+    private static void createChart(CompanyReport companyReport, Workbook workbook) throws IOException {
         try {
-            final EasyJson shortTrend = executeHttp("https://www.alphavantage.co/query?function=EMA&symbol=" + code + "&interval=" + SHORT_INTERVAL + "&time_period=" + S_T_P + "&series_type=close&apikey=" + getApiKey());
-            final EasyJson longTrend = executeHttp("https://www.alphavantage.co/query?function=EMA&symbol=" + code + "&interval=" + LONG_INTERVAL + "&time_period=" + L_T_P + "&series_type=close&apikey=" + getApiKey());
-            final EasyJson daily = executeHttp("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=" + code + "&apikey=" + getApiKey());
+            final EasyJson shortTrend = executeHttp("https://www.alphavantage.co/query?function=EMA&symbol=" + companyReport.getCode() + "&interval=" + SHORT_INTERVAL + "&time_period=" + S_T_P + "&series_type=close&apikey=" + getApiKey());
+            final EasyJson longTrend = executeHttp("https://www.alphavantage.co/query?function=EMA&symbol=" + companyReport.getCode() + "&interval=" + LONG_INTERVAL + "&time_period=" + L_T_P + "&series_type=close&apikey=" + getApiKey());
+            final EasyJson daily = executeHttp("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=" + companyReport.getCode() + "&apikey=" + getApiKey());
 
             JFreeChart chart = ChartFactory.createTimeSeriesChart(
-                    "EMA" + L_T_P + "-EMA" + S_T_P + " " + code,
+                    "EMA" + L_T_P + "-EMA" + S_T_P + " " + companyReport.getCode(),
                     "Date",
                     "Price($)",
                     createDataset(daily, shortTrend, longTrend)
             );
             chartCustomization(chart);
-            ChartUtils.saveChartAsPNG(new File("D:\\projects\\infrastructure-as-a-code\\src\\main\\resources\\ema" + L_T_P + "-ema" + S_T_P + "-" + code + ".png"), chart, WIDTH, HEIGHT);
+            ChartUtils.saveChartAsPNG(new File("D:\\projects\\infrastructure-as-a-code\\src\\main\\resources\\ema\\ema" + L_T_P + "-ema" + S_T_P + "-" + companyReport.getCode() + ".png"), chart, WIDTH, HEIGHT);
+            if (workbook != null) {
+                Sheet sheet = workbook.getSheetAt(0);
+                Row currentRow = sheet.getRow(companyReport.getRow());
+                updateCell(new Date().toString(), currentRow, 0);
+                try (FileOutputStream outputFile = new FileOutputStream(REPORT_PATH)) {
+                    workbook.write(outputFile);
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -80,8 +99,11 @@ public class EmaTrendAnalysys {
     private static void chartCustomization(JFreeChart chart) {
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         renderer.setSeriesPaint(0, new Color(205, 0, 23));
+        renderer.setSeriesStroke(0, new BasicStroke(2.0f));
         renderer.setSeriesPaint(1, new Color(0, 55, 255, 255));
+        renderer.setSeriesStroke(1, new BasicStroke(4.0f));
         renderer.setSeriesPaint(2, new Color(34, 113, 19));
+        renderer.setSeriesStroke(2, new BasicStroke(6.0f));
         renderer.setSeriesShapesVisible(0, false);
         renderer.setSeriesShapesVisible(1, false);
         renderer.setSeriesShapesVisible(2, false);

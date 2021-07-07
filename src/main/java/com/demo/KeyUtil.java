@@ -27,7 +27,7 @@ public class KeyUtil {
 
     public static String getApiKey() {
         try {
-            Thread.sleep(65000 / MINUTE_LIMIT / KEY_USAGE_COUNT.size());
+            Thread.sleep(75000 / MINUTE_LIMIT / KEY_USAGE_COUNT.size());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

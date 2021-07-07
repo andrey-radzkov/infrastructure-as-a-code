@@ -1,11 +1,5 @@
 package com.demo;
 
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.json.JSONObject;
 
@@ -87,7 +81,7 @@ public class GeneralPerformanceAnalysys {
 
     }
 
-    private static void updateCell(String value, Row currentRow, int i) {
+    public static void updateCell(String value, Row currentRow, int i) {
         Cell cell2Update = currentRow.getCell(i);
         if (cell2Update == null) {
             cell2Update = currentRow.createCell(i);
