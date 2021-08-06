@@ -1,5 +1,6 @@
 package com.demo;
 
+import io.confluent.ksql.api.client.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 
 @EnableKafka
 @SpringBootApplication
@@ -19,21 +21,40 @@ public class DemoApplication {
     private List<Map<String, Object>> events = new CopyOnWriteArrayList<>();
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
-
+    public static String KSQLDB_SERVER_HOST = "localhost";
+    public static int KSQLDB_SERVER_HOST_PORT = 8088;
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
     }
 
     @GetMapping("/hello")
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
-        kafkaTemplate.send("test2", "hello");
+        kafkaTemplate.send("test2", "{\"name\": \"" + name + "\"}");
 //        kafkaTemplate.metrics();
         return String.format("Hello %s!", name);
     }
 
+    @GetMapping("/ksql")
+    public String ksql(@RequestParam(value = "query") String query) throws ExecutionException, InterruptedException {
+        ClientOptions options = ClientOptions.create()
+                .setHost(KSQLDB_SERVER_HOST)
+                .setPort(KSQLDB_SERVER_HOST_PORT);
+        Client client = Client.create(options);
+
+        // Send requests with the client by following the other examples
+        StreamedQueryResult queryResult = client.streamQuery(query).get();
+
+// Wait for query result
+        final Row poll = queryResult.poll();
+        // Terminate any open connections nd close the client
+        client.close();
+//        kafkaTemplate.metrics();
+        return String.format("Hello %s!", poll.getInteger("C_N"));
+    }
+
     @KafkaListener(topics = "test2", groupId = "groupId")
     public void listen(String in) {
-        System.out.println(in);
+        System.out.println("From kafka: " + in);
     }
 
     @PostMapping("/event")
