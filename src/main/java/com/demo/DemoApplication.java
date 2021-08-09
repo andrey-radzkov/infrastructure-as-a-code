@@ -29,7 +29,7 @@ public class DemoApplication {
 
     @GetMapping("/hello")
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
-        kafkaTemplate.send("test2", "{\"name\": \"" + name + "\"}");
+        kafkaTemplate.send("test2", "{\"name\": \"" + name + "\",\"other-field\": \"other-value\"}");
 //        kafkaTemplate.metrics();
         return String.format("Hello %s!", name);
     }
