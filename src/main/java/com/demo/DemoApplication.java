@@ -36,6 +36,15 @@ public class DemoApplication {
 
     @GetMapping("/ksql")
     public String ksql(@RequestParam(value = "query") String query) throws ExecutionException, InterruptedException {
+        return execute(query);
+    }
+
+    @PostMapping("/ksql")
+    public String ksqlPost(@RequestBody Map<String, String> query) throws ExecutionException, InterruptedException {
+        return execute(query.get("query"));
+    }
+
+    private String execute(String query) throws InterruptedException, ExecutionException {
         ClientOptions options = ClientOptions.create()
                 .setHost(KSQLDB_SERVER_HOST)
                 .setPort(KSQLDB_SERVER_HOST_PORT);
