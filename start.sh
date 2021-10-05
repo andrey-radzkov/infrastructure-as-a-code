@@ -1,7 +1,9 @@
 #!/bin/bash
 sudo apt-get -y update
+sudo apt -y install wget curl
+wget https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.deb
 sudo apt-get -y install git
-sudo apt-get -y install openjdk-17-jdk
+sudo apt -y  install ./jdk-17_linux-x64_bin.deb
 sudo git clone --single-branch --branch=feature/gcp https://github.com/andrey-radzkov/infrastructure-as-a-code.git
 sudo apt-get -y install nginx
 sudo /etc/init.d/nginx start
