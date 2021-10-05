@@ -20,7 +20,7 @@ resource "google_compute_instance" "default" {
   machine_type = "e2-micro"
   zone         = "us-central1-a"
 
-  tags = ["foo", "bar"]
+  tags = ["foo", "bar","http-server", "https-server"]
   boot_disk {
     initialize_params {
       image = "debian-cloud/debian-9"
