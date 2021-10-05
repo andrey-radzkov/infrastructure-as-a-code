@@ -1,58 +1,55 @@
-provider "aws" {
-  profile = "default"
-  region = "us-east-1"
-  shared_credentials_file = "C:/Users/a/.aws/credentials"
-}
-
-resource "aws_security_group" "ssh" {
-
-  name = "terraform_security_group_ssh"
-  description = "AWS security group for terraform example"
-  ingress {
-    from_port = "22"
-    to_port = "22"
-    protocol = "tcp"
-    cidr_blocks = [
-      "0.0.0.0/0"]
+terraform {
+  required_providers {
+    google = {
+      source = "hashicorp/google"
+      version = "3.5.0"
+    }
   }
 }
 
-resource "aws_security_group" "http" {
+provider "google" {
+  credentials = file("./temporal-genius-216510-d1067f7fe71f.json")
 
-  name = "terraform_security_group_http"
-  description = "AWS security group for terraform example"
-  ingress {
-    from_port = "8080"
-    to_port = "8080"
-    protocol = "tcp"
-    cidr_blocks = [
-      "0.0.0.0/0"]
-  }
-  egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
-    cidr_blocks = [
-      "0.0.0.0/0"]
-  }
+  project = "temporal-genius-216510"
+  region  = "us-central1"
+  zone    = "us-central1-c"
 }
 
-resource "aws_instance" "example" {
-  ami = "ami-2757f631"
-  instance_type = "t2.micro"
-  key_name = "test2"
-  user_data = file("./start.sh")
+resource "google_compute_instance" "default" {
+  name         = "test"
+  machine_type = "e2-micro"
+  zone         = "us-central1-a"
 
-  connection {
-    host = self.public_ip
-    type = "ssh"
-    user = "ubuntu"
-    private_key = file("./test2.pem")
-    agent = false
-    timeout = "1m"
+  tags = ["foo", "bar"]
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-9"
+    }
   }
-  security_groups = [
-    "terraform_security_group_http",
-    "terraform_security_group_ssh"]
-  associate_public_ip_address = true
+
+  // Local SSD disk
+#  scratch_disk {
+#    interface = "SCSI"
+#  }
+
+  network_interface {
+    network = "default"
+
+    access_config {
+      // Ephemeral public IP
+#      nat_ip = google_compute_address.static.address
+    }
+  }
+
+  metadata = {
+    foo = "bar"
+  }
+
+  metadata_startup_script = file("./start.sh")
+
+#  service_account {
+#    # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
+#    email  = google_service_account.default.email
+#    scopes = ["cloud-platform"]
+#  }
 }
